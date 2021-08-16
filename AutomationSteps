@@ -1,0 +1,1296 @@
+from behave import *
+from selenium import webdriver
+import selenium.webdriver.support.ui as sel
+import time
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver import ActionChains
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from numpy import *
+import requests
+from selenium.common.exceptions import NoSuchElementException
+import selenium.common.exceptions as selexcept
+import logging
+import sys
+
+
+# ----------------------QUICK FIND------------------------------------------
+@given('Launch chrome browser')
+def step_OpenChrome(context):
+    context.driver = webdriver.Chrome(executable_path="/Users/jakubircow/Downloads/chromedriver")
+    time.sleep(10)
+
+
+@when('Open Kronos Logistics')
+def step_OpenKronosLogistics(context):
+    context.driver.get("CONFIDENTIAL URL")
+    time.sleep(10)
+
+
+@when('Enter username "{user}" and password "{pwd}"')
+def step_UsernamePassword(context, user, pwd):
+    context.driver.find_element_by_id("username").send_keys(user)
+    userID = user
+    context.driver.find_element_by_id("passInput").send_keys(pwd)
+    time.sleep(10)
+
+    return userID
+
+
+global userID
+
+
+@then('Click on login button')
+def step_LoginButton(context):
+    context.driver.find_element_by_id("loginSubmit").click()
+    time.sleep(10)
+
+
+@then('Press OK after login')
+def step_OkButton(context):
+    context.driver.find_element_by_xpath('/html/body/div[6]/div[1]/div/krn-custom-popup-content/div/button').click()
+    time.sleep(10)
+
+
+@then('Press on Searchbar and enter "{cID}"')
+def step_searchForColleague(context, cID):
+    # Error = WebDriverWait(ff, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@class='error']")))
+    # context.driver.find_element_by_name("searchQuery").send_keys(cID)
+    context.driver.maximize_window()
+    time.sleep(3)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1906')]"))
+    time.sleep(3)
+    context.driver.find_element_by_xpath('.//*[@id="searchQuery"]').send_keys(cID)
+    # searchBar = context.driver.find_element_by_xpath('.//*[@id="searchQuery"]')
+    # searchBar.send_keys(cID)
+    time.sleep(3)
+    context.driver.find_element_by_xpath('//*[@id="quickfindsearch_btn"]').click()
+    time.sleep(3)
+    context.driver.find_element_by_xpath('//*[@id="row0genieGrid"]/div[1]/div').click()
+    time.sleep(3)
+
+
+@then('Go to timecard')
+def step_goToTimecard(context):
+    context.driver.find_element_by_xpath('//*[@id="goto_caret"]/button').click()
+    time.sleep(3)
+    context.driver.find_element_by_xpath(
+        '//*[@id="com.kronos.wfc.ngui.genies.controls.goto"]/div/div/div[2]/section/section[1]/div/div/ul/li[1]').click()
+    time.sleep(10)
+
+
+def self(args):
+    pass
+
+
+@then('Enter clock in "{clockin}" and clock out "{clockout}" for Tue 22/6')
+def step_EnterClockings(context, clockin, clockout):
+    # context.driver.switch_to.parent_frame()
+    context.driver.switch_to.default_content()
+    # context.driver.switch_to.frame(context.driver.find_element_by_tag_name("iframe"))
+    time.sleep(5)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    # context.driver.switch_to.frame(context.driver.find_element_by_xpath("// *[ @ id = "widgetFrame1914"]"))
+    time.sleep(5)
+    # context.driver.find_element_by_xpath('//div[contains(@id,"jqxWidgetead576b9f6a0")]').send_keys(clockin)
+    context.driver.find_element_by_xpath('// *[ @ id = "row3jqxGrid0"] / div[5]').click()
+
+    actions = ActionChains(context.driver)
+    actions.send_keys(clockin)
+    actions.perform()
+
+    time.sleep(5)
+
+    context.driver.find_element_by_xpath('// *[ @ id = "row3jqxGrid0"] / div[6]').click()
+    actions = ActionChains(context.driver)
+    actions.send_keys(clockout)
+    actions.perform()
+
+    time.sleep(5)
+    context.driver.find_element_by_xpath('// *[ @ id = "saveButton"]').click()
+    time.sleep(5)
+    time.sleep(5)
+    context.driver.find_element_by_xpath('// *[ @ id = "saveButton"]').click()
+    time.sleep(5)
+
+
+@then('Check results show "{prem}" "{amount}"')
+def step_CheckResults(context, prem, amount):
+    button = context.driver.find_element_by_class_name('//*[@id="jqxWidgetd6776bdc4c8b"]/div')
+    ActionChains(context.driver).move_to_element(button).click(button).perform()
+    time.sleep(3)
+
+
+@then('From Quickfind choose previous period')
+def step_quickFindGoToPreviousPeriod(context):
+    time.sleep(5)
+    context.driver.find_element_by_xpath(
+        '//*[@id="genie.toolbar.actions.contextselector"]/div/section/div/div/div[1]/div/div[1]/button').click()
+    time.sleep(5)
+    context.driver.find_element_by_xpath(
+        '//*[@id="genie.toolbar.actions.contextselector"]/div/section/div/div/div[1]/div/div[1]/ul/li[1]').click()
+    time.sleep(5)
+    context.driver.find_element_by_xpath('//*[@id="row0genieGrid"]/div[1]/div').click()
+    time.sleep(10)
+
+
+#     ------------------------------------SCHEDULE STEPS ---------------------------------------------------------------------
+
+@then('Go to Schedule Planner')
+def step_goToSchedulePlanner(context):
+    context.driver.find_element_by_xpath('//*[@id="goto_caret"]/button').click()
+    time.sleep(3)
+    context.driver.find_element_by_xpath(
+        '//*[@id="com.kronos.wfc.ngui.genies.controls.goto"]/div/div/div[2]/section/section[1]/div/div/ul/li[2]').click()
+    time.sleep(5)
+
+
+@then('In Schedule Planner go to the previous Period')
+# --------------------------------------CURRENTLY DOESNT WORK-------------------------------------
+def step_goToPreviousPeriod(context):
+    context.driver.switch_to.default_content()
+    # context.driver.switch_to.frame(context.driver.find_element_by_tag_name("iframe"))
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1947')]"))
+    # context.driver.switch_to.frame(context.driver.find_element_by_xpath("// *[ @ id = "widgetFrame1914"]"))
+    time.sleep(2)
+
+    context.driver.find_element_by_xpath('//*[@id="schedule.timeframe.selector"]/div/div[1]/button').click()
+
+    time.sleep(2)
+
+    context.driver.find_element_by_xpath('//*[@id="context"]/section/div/div/div[1]/div/div[1]/ul/li[1]').click()
+    time.sleep(5)
+
+
+# --------------------------------------------------------------------------------------------------
+@then('Delete Current Schedule')
+def step_deleteCurrentSchedule(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1947')]"))
+    time.sleep(3)
+    context.driver.find_element_by_xpath("//span[contains(text(),'Quick Actions')]").click()
+    time.sleep(5)
+    context.driver.find_element_by_xpath('//*[@id="html.schedule.quickDeleteAction"]').click()
+    time.sleep(5)
+
+    time.sleep(5)
+    driver = context.driver
+
+    try:
+        driver.find_element_by_xpath(
+            "/html/body/div[1]/div[4]/div/div/div[2]/div[1]/div[2]/div[3]/div[1]/div/div/div[2]/div[2]/div/div[4]/table[2]/tbody/tr/td/div/div[7]").click()
+    except selexcept.NoSuchElementException:
+        pass
+    try:
+        time.sleep(5)
+        driver.find_element_by_xpath(
+            "/html/body/div[1]/div[4]/div/div/div[2]/div[1]/div[2]/div[3]/div[1]/div/div/div[2]/div[2]/div/div[4]/table[2]/tbody/tr/td/div/div[6]").click()
+    except selexcept.NoSuchElementException:
+        pass
+
+    try:
+        time.sleep(5)
+        driver.find_element_by_xpath(
+            "/html/body/div[1]/div[4]/div/div/div[2]/div[1]/div[2]/div[3]/div[1]/div/div/div[2]/div[2]/div/div[4]/table[2]/tbody/tr/td/div/div[5]").click()
+    except selexcept.NoSuchElementException:
+        pass
+
+    try:
+        time.sleep(5)
+        driver.find_element_by_xpath(
+            "/html/body/div[1]/div[4]/div/div/div[2]/div[1]/div[2]/div[3]/div[1]/div/div/div[2]/div[2]/div/div[4]/table[2]/tbody/tr/td/div/div[4]").click()
+    except selexcept.NoSuchElementException:
+        pass
+
+    try:
+        time.sleep(5)
+        driver.find_element_by_xpath(
+            "/html/body/div[1]/div[4]/div/div/div[2]/div[1]/div[2]/div[3]/div[1]/div/div/div[2]/div[2]/div/div[4]/table[2]/tbody/tr/td/div/div[3]").click()
+    except selexcept.NoSuchElementException:
+        pass
+
+    try:
+        time.sleep(5)
+        driver.find_element_by_xpath(
+            "/html/body/div[1]/div[4]/div/div/div[2]/div[1]/div[2]/div[3]/div[1]/div/div/div[2]/div[2]/div/div[4]/table[2]/tbody/tr/td/div/div[2]").click()
+    except selexcept.NoSuchElementException:
+        pass
+
+    try:
+        time.sleep(5)
+        driver.find_element_by_xpath(
+            "/html/body/div[1]/div[4]/div/div/div[2]/div[1]/div[2]/div[3]/div[1]/div/div/div[2]/div[2]/div/div[4]/table[2]/tbody/tr/td/div/div[1]").click()
+    except selexcept.NoSuchElementException:
+        pass
+
+    time.sleep(3)
+
+    driver.find_element_by_id("html.schedule.slidertoolbar.sliderbtn_btn").click()
+
+    time.sleep(3)
+
+    driver.find_element_by_xpath('//*[@id="html.scheduleSaveAction"]').click()
+
+    time.sleep(20)
+
+
+@then(
+    'In Schedule Planner set schedules: SUN: "{SUN}", MON: "{MON}", TUE: "{TUE}", WED: "{WED}", THU: "{THU}", FRI:"{FRI}", SAT: "{SAT}" and save')
+def step_setSchedule(context, SUN, MON, TUE, WED, THU, FRI, SAT):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1947')]"))
+    driver = context.driver
+    time.sleep(5)
+    ScheduleClick = driver.find_element_by_xpath(
+        '/html/body/div[1]/div[4]/div/div/div[2]/div[1]/div[2]/div[3]/div[1]/div/div/div[1]/div[2]/div/div[2]/table[2]/tbody/tr/td[2]/div')
+    ActionChains(driver).move_to_element(ScheduleClick).double_click(ScheduleClick).perform()
+
+    time.sleep(5)
+    driver.find_element_by_xpath(
+        '/html/body/div[9]/div[2]/div[1]/div[2]/div/div[2]/div/div/div/div/div[4]/div[2]/div/div[1]/div[2]').click()
+    time.sleep(5)
+    driver.find_element_by_id('yesClose').click()
+
+    time.sleep(5)
+    driver.find_element_by_id('wfs.sp.btn.addPattern').click()
+
+    time.sleep(5)
+
+    # SunSched = driver.find_element_by_xpath('/html/body/div[9]/div[2]/div[1]/div[2]/div/div[6]/add-edit-schedule-pattern-elements-directive/div/div[1]/div/div[6]/div/div/div/div/div[4]/div[2]/div/div/div[4]')
+    driver.find_element_by_xpath(
+        "//span[text()='Sunday']/ancestor::div[contains(@id,'columntable')]/parent::div/following-sibling::div[1]//div[@role='gridcell'][4]//input").click()
+    time.sleep(2)
+    actions = ActionChains(driver)
+    actions.send_keys(SUN)
+    actions.perform()
+    time.sleep(2)
+    actions.send_keys(Keys.ENTER)
+    actions.send_keys(Keys.RETURN)
+    driver.find_element_by_xpath(
+        "//span[text()='Monday']/ancestor::div[contains(@id,'columntable')]/parent::div/following-sibling::div[1]//div[@role='gridcell'][5]//input").click()
+    time.sleep(5)
+
+    driver.find_element_by_xpath(
+        "//span[text()='Monday']/ancestor::div[contains(@id,'columntable')]/parent::div/following-sibling::div[1]//div[@role='gridcell'][5]//input").click()
+    time.sleep(2)
+    actions = ActionChains(driver)
+    actions.send_keys(MON)
+    actions.perform()
+
+    driver.find_element_by_xpath(
+        "//span[text()='Tuesday']/ancestor::div[contains(@id,'columntable')]/parent::div/following-sibling::div[1]//div[@role='gridcell'][6]//input").click()
+    time.sleep(5)
+
+    driver.find_element_by_xpath(
+        "//span[text()='Tuesday']/ancestor::div[contains(@id,'columntable')]/parent::div/following-sibling::div[1]//div[@role='gridcell'][6]//input").click()
+    time.sleep(2)
+    actions = ActionChains(driver)
+    actions.send_keys(TUE)
+    actions.perform()
+    time.sleep(2)
+
+    driver.find_element_by_xpath(
+        "//span[text()='Wednesday']/ancestor::div[contains(@id,'columntable')]/parent::div/following-sibling::div[1]//div[@role='gridcell'][7]//input").click()
+    time.sleep(5)
+
+    # SunSched = driver.find_element_by_xpath('/html/body/div[9]/div[2]/div[1]/div[2]/div/div[6]/add-edit-schedule-pattern-elements-directive/div/div[1]/div/div[6]/div/div/div/div/div[4]/div[2]/div/div/div[4]')
+    driver.find_element_by_xpath(
+        "//span[text()='Wednesday']/ancestor::div[contains(@id,'columntable')]/parent::div/following-sibling::div[1]//div[@role='gridcell'][7]//input").click()
+    time.sleep(2)
+    actions = ActionChains(driver)
+    actions.send_keys(WED)
+    actions.perform()
+    driver.find_element_by_xpath(
+        "//span[text()='Thursday']/ancestor::div[contains(@id,'columntable')]/parent::div/following-sibling::div[1]//div[@role='gridcell'][8]//input").click()
+    time.sleep(5)
+
+    driver.find_element_by_xpath(
+        "//span[text()='Thursday']/ancestor::div[contains(@id,'columntable')]/parent::div/following-sibling::div[1]//div[@role='gridcell'][8]//input").click()
+    time.sleep(2)
+    actions = ActionChains(driver)
+    actions.send_keys(THU)
+    actions.perform()
+    driver.find_element_by_xpath(
+        "//span[text()='Friday']/ancestor::div[contains(@id,'columntable')]/parent::div/following-sibling::div[1]//div[@role='gridcell'][9]//input").click()
+
+    time.sleep(5)
+
+    driver.find_element_by_xpath(
+        "//span[text()='Friday']/ancestor::div[contains(@id,'columntable')]/parent::div/following-sibling::div[1]//div[@role='gridcell'][9]//input").click()
+    time.sleep(2)
+    actions = ActionChains(driver)
+    actions.send_keys(FRI)
+    actions.perform()
+
+    driver.find_element_by_xpath(
+        "//span[text()='Saturday']/ancestor::div[contains(@id,'columntable')]/parent::div/following-sibling::div[1]//div[@role='gridcell'][10]//input").click()
+
+    time.sleep(5)
+    time.sleep(2)
+    driver.find_element_by_xpath(
+        "//span[text()='Saturday']/ancestor::div[contains(@id,'columntable')]/parent::div/following-sibling::div[1]//div[@role='gridcell'][10]//input").click()
+    time.sleep(2)
+    actions = ActionChains(driver)
+    actions.send_keys(SAT)
+    actions.perform()
+    actions.send_keys(Keys.ENTER)
+    actions.send_keys(Keys.RETURN)
+
+    time.sleep(3)
+    driver.find_element_by_xpath(
+        "//span[text()='Saturday']/ancestor::div[contains(@id,'columntable')]/parent::div/following-sibling::div[1]//div[@role='gridcell'][9]//input").click()
+    time.sleep(1)
+    driver.find_element_by_id("wfs.sp.pattern.patternaddedit_btnApplyPatterns").click()
+    time.sleep(3)
+
+    driver.find_element_by_xpath(
+        "/html/body/div[9]/div[2]/div[1]/div[2]/div/div[2]/div/div/div/div/div[4]/div[2]/div/div[1]/div[4]").click()
+    time.sleep(5)
+
+    driver.find_element_by_id('wfs.sp.btn.okPattern').click()
+
+    time.sleep(5)
+
+    time.sleep(5)
+
+    driver.find_element_by_id("html.schedule.toolbar.save").click()
+
+    time.sleep(5)
+    # refreshing the schedule planner
+    driver.find_element_by_id("html.scheduleRefreshContentAction").click()
+
+    time.sleep(5)
+
+
+@then('From Schedule Planner go to the TIMECARD')
+def step_FromScheduleGoToTimecard(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1947')]"))
+    driver = context.driver
+
+    driver.find_element_by_xpath('//*[@id="goto_caret"]/button').click()
+    time.sleep(3)
+    driver.find_element_by_xpath(
+        '//*[@id="html.schedule.toolbar.goto"]/div/div/div[2]/section/section[1]/div/div/ul/li[1]/a').click()
+    time.sleep(10)
+
+    # --------------------------------TIMECARD-----------------------------
+
+
+@then('In the TIMECARD clear all the clockings')
+def step_FromScheduleGoToTimecard(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+
+    driver.find_element_by_xpath('//*[@id="row1jqxGrid0"]/div[2]/div/div/div').click()
+    time.sleep(3)
+    driver.find_element_by_xpath('//*[@id="row2jqxGrid0"]/div[2]/div/div/div').click()
+    time.sleep(3)
+    driver.find_element_by_xpath('//*[@id="row3jqxGrid0"]/div[2]/div/div/div').click()
+    time.sleep(3)
+    driver.find_element_by_xpath('//*[@id="row4jqxGrid0"]/div[2]/div/div/div').click()
+    time.sleep(3)
+    driver.find_element_by_xpath('//*[@id="row5jqxGrid0"]/div[2]/div/div/div').click()
+    time.sleep(3)
+    driver.find_element_by_xpath('//*[@id="row6jqxGrid0"]/div[2]/div/div/div').click()
+    time.sleep(3)
+    driver.find_element_by_xpath('//*[@id="row7jqxGrid0"]/div[2]/div/div/div').click()
+    time.sleep(3)
+    driver.find_element_by_xpath('//*[@id="saveButton"]').click()
+    time.sleep(5)
+
+
+
+@then('In the TIMECARD clear all the clockings VERSION2')
+def step_ClearClockingsV2(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+
+    driver.find_element_by_xpath('//*[@id="row1jqxGrid0"]/div[2]/div/div/div').click()
+    time.sleep(3)
+    driver.find_element_by_xpath('//*[@id="row2jqxGrid0"]/div[2]/div/div/div').click()
+    time.sleep(3)
+    driver.find_element_by_xpath('//*[@id="row3jqxGrid0"]/div[2]/div/div/div').click()
+    time.sleep(3)
+    driver.find_element_by_xpath('//*[@id="row4jqxGrid0"]/div[2]/div/div/div').click()
+    time.sleep(3)
+    driver.find_element_by_xpath('//*[@id="row5jqxGrid0"]/div[2]/div/div/div').click()
+    time.sleep(3)
+    driver.find_element_by_xpath('//*[@id="row6jqxGrid0"]/div[2]/div/div/div').click()
+    time.sleep(3)
+    driver.find_element_by_xpath('//*[@id="row7jqxGrid0"]/div[2]/div/div/div').click()
+    time.sleep(3)
+    driver.find_element_by_xpath('//*[@id="saveButton"]').click()
+    time.sleep(3)
+
+
+    try:
+        time.sleep(1)
+        ApprovedOT = driver.find_element_by_xpath('//*[@id="column-Date-Row-1"]/span')
+        time.sleep(1)
+        ActionChains(driver).move_to_element(ApprovedOT).context_click(ApprovedOT).perform()
+        time.sleep(1)
+        driver.find_element_by_xpath('//*[@id="approveOvertimePopup"]').click()
+        time.sleep(1)
+        driver.find_element_by_xpath('//*[@id="timecardApproveOvertime"]/div[2]/div/footer/div/button[1]').click()
+        time.sleep(10)
+
+    except selexcept.NoSuchElementException:
+        pass
+
+    try:
+        time.sleep(1)
+        ApprovedOT = driver.find_element_by_xpath('//*[@id="column-Date-Row-2"]/span')
+        time.sleep(1)
+        ActionChains(driver).move_to_element(ApprovedOT).context_click(ApprovedOT).perform()
+        time.sleep(1)
+        driver.find_element_by_xpath('//*[@id="approveOvertimePopup"]').click()
+        time.sleep(1)
+        driver.find_element_by_xpath('//*[@id="timecardApproveOvertime"]/div[2]/div/footer/div/button[1]').click()
+        time.sleep(3)
+
+    except selexcept.NoSuchElementException:
+        pass
+
+    try:
+        time.sleep(1)
+        ApprovedOT = driver.find_element_by_xpath('//*[@id="column-Date-Row-3"]/span')
+        time.sleep(1)
+        ActionChains(driver).move_to_element(ApprovedOT).context_click(ApprovedOT).perform()
+        time.sleep(1)
+        driver.find_element_by_xpath('//*[@id="approveOvertimePopup"]').click()
+        time.sleep(1)
+        driver.find_element_by_xpath('//*[@id="timecardApproveOvertime"]/div[2]/div/footer/div/button[1]').click()
+        time.sleep(3)
+
+    except selexcept.NoSuchElementException:
+        pass
+
+    try:
+        time.sleep(1)
+        ApprovedOT = driver.find_element_by_xpath('//*[@id="column-Date-Row-4"]/span')
+        time.sleep(1)
+        ActionChains(driver).move_to_element(ApprovedOT).context_click(ApprovedOT).perform()
+        time.sleep(1)
+        driver.find_element_by_xpath('//*[@id="approveOvertimePopup"]').click()
+        time.sleep(1)
+        driver.find_element_by_xpath('//*[@id="timecardApproveOvertime"]/div[2]/div/footer/div/button[1]').click()
+        time.sleep(3)
+
+    except selexcept.NoSuchElementException:
+        pass
+
+    try:
+        time.sleep(1)
+        ApprovedOT = driver.find_element_by_xpath('//*[@id="column-Date-Row-5"]/span')
+        time.sleep(1)
+        ActionChains(driver).move_to_element(ApprovedOT).context_click(ApprovedOT).perform()
+        time.sleep(1)
+        driver.find_element_by_xpath('//*[@id="approveOvertimePopup"]').click()
+        time.sleep(1)
+        driver.find_element_by_xpath('//*[@id="timecardApproveOvertime"]/div[2]/div/footer/div/button[1]').click()
+        time.sleep(3)
+
+    except selexcept.NoSuchElementException:
+        pass
+
+    try:
+        time.sleep(1)
+        ApprovedOT = driver.find_element_by_xpath('//*[@id="column-Date-Row-6"]/span')
+        time.sleep(1)
+        ActionChains(driver).move_to_element(ApprovedOT).context_click(ApprovedOT).perform()
+        time.sleep(1)
+        driver.find_element_by_xpath('//*[@id="approveOvertimePopup"]').click()
+        time.sleep(1)
+        driver.find_element_by_xpath('//*[@id="timecardApproveOvertime"]/div[2]/div/footer/div/button[1]').click()
+        time.sleep(3)
+
+    except selexcept.NoSuchElementException:
+        pass
+
+    try:
+        time.sleep(1)
+        ApprovedOT = driver.find_element_by_xpath('//*[@id="column-Date-Row-7"]/span')
+        time.sleep(1)
+        ActionChains(driver).move_to_element(ApprovedOT).context_click(ApprovedOT).perform()
+        time.sleep(1)
+        driver.find_element_by_xpath('//*[@id="approveOvertimePopup"]').click()
+        time.sleep(1)
+        driver.find_element_by_xpath('//*[@id="timecardApproveOvertime"]/div[2]/div/footer/div/button[1]').click()
+        time.sleep(3)
+
+    except selexcept.NoSuchElementException:
+        pass
+
+    time.sleep(1)
+    driver.find_element_by_xpath('//*[@id="saveButton"]').click()
+    time.sleep(5)
+
+@then(
+    'In the TIMECARD enter clockings: SUN: in: "{SUNin}" out: "{SUNout}", MON: in: "{MONin}" out: "{MONout}", TUE: in: "{TUEin}" out: "{TUEout}", WED: in: "{WEDin}" out: "{WEDout}", THU: in: "{THUin}" out: "{THUout}", FRI: in:"{FRIin}" out: "{FRIout}", SAT: in:"{SATin}" out:"{SATout}" and save')
+def step_FromScheduleGoToTimecard(context, SUNin, SUNout, MONin, MONout, TUEin, TUEout, WEDin, WEDout, THUin, THUout,
+                                  FRIin, FRIout, SATin, SATout):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+    time.sleep(1)
+
+    context.driver.find_element_by_xpath('//*[@id="row1jqxGrid0"]/div[5]').click()
+    time.sleep(1)
+    actions = ActionChains(context.driver)
+    actions.send_keys(SUNin)
+    actions.perform()
+    time.sleep(1)
+
+    context.driver.find_element_by_xpath('//*[@id="row1jqxGrid0"]/div[6]').click()
+    time.sleep(1)
+    actions = ActionChains(context.driver)
+    actions.send_keys(SUNout)
+    actions.perform()
+    time.sleep(1)
+
+    time.sleep(1)
+
+    context.driver.find_element_by_xpath('//*[@id="row2jqxGrid0"]/div[5]').click()
+    time.sleep(1)
+    actions = ActionChains(context.driver)
+    actions.send_keys(MONin)
+    actions.perform()
+    time.sleep(1)
+
+    time.sleep(1)
+
+    context.driver.find_element_by_xpath('//*[@id="row2jqxGrid0"]/div[6]').click()
+    time.sleep(1)
+    actions = ActionChains(context.driver)
+    actions.send_keys(MONout)
+    actions.perform()
+    time.sleep(1)
+
+    time.sleep(1)
+
+    context.driver.find_element_by_xpath('//*[@id="row3jqxGrid0"]/div[5]').click()
+    time.sleep(1)
+    actions = ActionChains(context.driver)
+    actions.send_keys(TUEin)
+    actions.perform()
+    time.sleep(1)
+
+    time.sleep(1)
+
+    context.driver.find_element_by_xpath('//*[@id="row3jqxGrid0"]/div[6]').click()
+    time.sleep(1)
+    actions = ActionChains(context.driver)
+    actions.send_keys(TUEout)
+    actions.perform()
+    time.sleep(1)
+
+    time.sleep(1)
+
+    context.driver.find_element_by_xpath('//*[@id="row4jqxGrid0"]/div[5]').click()
+    time.sleep(1)
+    actions = ActionChains(context.driver)
+    actions.send_keys(WEDin)
+    actions.perform()
+    time.sleep(1)
+
+    time.sleep(1)
+
+    context.driver.find_element_by_xpath('//*[@id="row4jqxGrid0"]/div[6]').click()
+    time.sleep(1)
+    actions = ActionChains(context.driver)
+    actions.send_keys(WEDout)
+    actions.perform()
+    time.sleep(1)
+
+    time.sleep(1)
+
+    context.driver.find_element_by_xpath('//*[@id="row5jqxGrid0"]/div[5]').click()
+    time.sleep(1)
+    actions = ActionChains(context.driver)
+    actions.send_keys(THUin)
+    actions.perform()
+    time.sleep(1)
+
+    time.sleep(1)
+
+    context.driver.find_element_by_xpath('//*[@id="row5jqxGrid0"]/div[6]').click()
+    time.sleep(1)
+    actions = ActionChains(context.driver)
+    actions.send_keys(THUout)
+    actions.perform()
+    time.sleep(1)
+
+    time.sleep(1)
+
+    context.driver.find_element_by_xpath('//*[@id="row6jqxGrid0"]/div[5]').click()
+    time.sleep(1)
+    actions = ActionChains(context.driver)
+    actions.send_keys(FRIin)
+    actions.perform()
+    time.sleep(1)
+
+    time.sleep(1)
+
+    context.driver.find_element_by_xpath('//*[@id="row6jqxGrid0"]/div[6]').click()
+    time.sleep(1)
+    actions = ActionChains(context.driver)
+    actions.send_keys(FRIout)
+    actions.perform()
+    time.sleep(1)
+
+    time.sleep(1)
+
+    context.driver.find_element_by_xpath('//*[@id="row7jqxGrid0"]/div[5]').click()
+    time.sleep(1)
+    actions = ActionChains(context.driver)
+    actions.send_keys(SATin)
+    actions.perform()
+    time.sleep(1)
+
+    time.sleep(1)
+
+    context.driver.find_element_by_xpath('//*[@id="row7jqxGrid0"]/div[6]').click()
+    time.sleep(1)
+    actions = ActionChains(context.driver)
+    actions.send_keys(SATout)
+    actions.perform()
+
+    time.sleep(1)
+    driver.find_element_by_xpath('//*[@id="saveButton"]').click()
+    time.sleep(5)
+
+# ------------------------------SEPERATE CLOCKINGS -----------------------------
+@then('In the TIMECARD enter clockings on SUN : in:"{SUNin}", out:"{SUNout}"')
+def step_FromScheduleGoToTimecard(context, SUNin, SUNout):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+
+    time.sleep(1)
+
+    context.driver.find_element_by_xpath('//*[@id="row1jqxGrid0"]/div[5]').click()
+    time.sleep(1)
+    actions = ActionChains(context.driver)
+    actions.send_keys(SUNin)
+    actions.perform()
+    time.sleep(3)
+
+    context.driver.find_element_by_xpath('//*[@id="row1jqxGrid0"]/div[6]').click()
+    time.sleep(1)
+    actions = ActionChains(context.driver)
+    actions.send_keys(SUNout)
+    actions.perform()
+    time.sleep(3)
+
+
+    time.sleep(1)
+    driver.find_element_by_xpath('//*[@id="saveButton"]').click()
+    time.sleep(3)
+
+@then('In the TIMECARD enter clockings on MON : in:"{MONin}", out:"{MONout}"')
+def step_FromScheduleGoToTimecard(context, MONin, MONout):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+
+    time.sleep(1)
+
+    context.driver.find_element_by_xpath('//*[@id="row2jqxGrid0"]/div[5]').click()
+    time.sleep(1)
+    actions = ActionChains(context.driver)
+    actions.send_keys(MONin)
+    actions.perform()
+    time.sleep(3)
+
+    context.driver.find_element_by_xpath('//*[@id="row2jqxGrid0"]/div[6]').click()
+    time.sleep(1)
+    actions = ActionChains(context.driver)
+    actions.send_keys(MONout)
+    actions.perform()
+    time.sleep(3)
+
+    time.sleep(1)
+    driver.find_element_by_xpath('//*[@id="saveButton"]').click()
+    time.sleep(3)
+
+    @then('In the TIMECARD enter clockings on TUE : in:"{TUEin}", out:"{TUEout}"')
+    def step_FromScheduleGoToTimecard(context, TUEin, TUEout):
+        context.driver.switch_to.default_content()
+        time.sleep(2)
+        context.driver.switch_to.frame(
+            context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+        driver = context.driver
+
+        time.sleep(1)
+
+        context.driver.find_element_by_xpath('//*[@id="row3jqxGrid0"]/div[5]').click()
+        time.sleep(1)
+        actions = ActionChains(context.driver)
+        actions.send_keys(TUEin)
+        actions.perform()
+        time.sleep(3)
+
+        context.driver.find_element_by_xpath('//*[@id="row3jqxGrid0"]/div[6]').click()
+        time.sleep(1)
+        actions = ActionChains(context.driver)
+        actions.send_keys(TUEout)
+        actions.perform()
+        time.sleep(3)
+
+        time.sleep(1)
+        driver.find_element_by_xpath('//*[@id="saveButton"]').click()
+        time.sleep(3)
+
+@then('In the TIMECARD enter clockings on WED : in:"{WEDin}", out:"{WEDout}"')
+def step_FromScheduleGoToTimecard(context, WEDin, WEDout):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+
+    time.sleep(1)
+
+    context.driver.find_element_by_xpath('//*[@id="row4jqxGrid0"]/div[5]').click()
+    time.sleep(1)
+    actions = ActionChains(context.driver)
+    actions.send_keys(WEDin)
+    actions.perform()
+    time.sleep(3)
+
+    context.driver.find_element_by_xpath('//*[@id="row4jqxGrid0"]/div[6]').click()
+    time.sleep(1)
+    actions = ActionChains(context.driver)
+    actions.send_keys(WEDout)
+    actions.perform()
+    time.sleep(3)
+
+    time.sleep(1)
+    driver.find_element_by_xpath('//*[@id="saveButton"]').click()
+    time.sleep(3)
+
+@then('In the TIMECARD enter clockings on THUR : in:"{THURin}", out:"{THURout}"')
+def step_FromScheduleGoToTimecard(context, THURin, THURout):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+
+    time.sleep(1)
+
+    context.driver.find_element_by_xpath('//*[@id="row5jqxGrid0"]/div[5]').click()
+    time.sleep(1)
+    actions = ActionChains(context.driver)
+    actions.send_keys(THURin)
+    actions.perform()
+    time.sleep(3)
+
+    context.driver.find_element_by_xpath('//*[@id="row5jqxGrid0"]/div[6]').click()
+    time.sleep(1)
+    actions = ActionChains(context.driver)
+    actions.send_keys(THURout)
+    actions.perform()
+    time.sleep(3)
+
+    time.sleep(1)
+    driver.find_element_by_xpath('//*[@id="saveButton"]').click()
+    time.sleep(3)
+
+@then('In the TIMECARD enter clockings on FRI : in:"{FRIin}", out:"{FRIout}"')
+def step_FromScheduleGoToTimecard(context, FRIin, FRIout):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+
+    time.sleep(1)
+
+    context.driver.find_element_by_xpath('//*[@id="row6jqxGrid0"]/div[5]').click()
+    time.sleep(1)
+    actions = ActionChains(context.driver)
+    actions.send_keys(FRIin)
+    actions.perform()
+    time.sleep(3)
+
+    context.driver.find_element_by_xpath('//*[@id="row6jqxGrid0"]/div[6]').click()
+    time.sleep(1)
+    actions = ActionChains(context.driver)
+    actions.send_keys(FRIout)
+    actions.perform()
+    time.sleep(3)
+
+    time.sleep(1)
+    driver.find_element_by_xpath('//*[@id="saveButton"]').click()
+    time.sleep(3)
+
+@then('In the TIMECARD enter clockings on SAT : in:"{SATin}", out:"{SATout}"')
+def step_FromScheduleGoToTimecard(context, SATin, SATout):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+
+    time.sleep(1)
+
+    context.driver.find_element_by_xpath('//*[@id="row7jqxGrid0"]/div[5]').click()
+    time.sleep(1)
+    actions = ActionChains(context.driver)
+    actions.send_keys(SATin)
+    actions.perform()
+    time.sleep(3)
+
+    context.driver.find_element_by_xpath('//*[@id="row7jqxGrid0"]/div[6]').click()
+    time.sleep(1)
+    actions = ActionChains(context.driver)
+    actions.send_keys(SATout)
+    actions.perform()
+    time.sleep(3)
+
+    time.sleep(1)
+    driver.find_element_by_xpath('//*[@id="saveButton"]').click()
+    time.sleep(3)
+
+# -------------------------------------CHECK THE RESULTS IN THE TIMECARD-------------------------------------------
+@then('In the TIMECARD open totals')
+def step_FromScheduleGoToTimecard(context):
+    context.driver.switch_to.default_content()
+    time.sleep(1)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+
+    driver.find_element_by_xpath("//*[@id='splitterDiv']/div[2]/div").click()
+    time.sleep(2)
+
+@then('In the TIMECARD check the totals: Premium: "{PREM1}" Amount: "{AMOUNT1}" Give position in the totals "{Pos}".')
+def step_FromScheduleGoToTimecard(context, PREM1, AMOUNT1, Pos):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+
+
+    i = Pos
+    i = str(i)
+    driver.find_element_by_xpath("//div[@id='column-name-Row-" + i + "' ] [./div[contains(.,'" + PREM1 + "' )]]")
+    driver.find_element_by_xpath("//div[@id='column-amount-Row-" + i + "' ] [./div[contains(.,'" + AMOUNT1 + "' )]]")
+    sys.exit()
+
+
+
+@then('In the TIMECARD SUNDAY clock in Exception Showing')
+def step_SundayLateIn(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+
+    driver.find_element_by_xpath('/html/body/div[4]/div[5]/div[1]/div/div/div/div/div[4]/div[2]/div/div[4]/div[5]/div/span[2]')
+
+@then('In the TIMECARD MONDAY clock in Exception Showing')
+def step_MondayLateIn(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+
+    driver.find_element_by_xpath('/html/body/div[4]/div[5]/div[1]/div/div/div/div/div[4]/div[2]/div/div[5]/div[5]/div/span[2]')
+
+@then('In the TIMECARD TUESDAY clock in Exception Showing')
+def step_TuesdayLateIn(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+
+    driver.find_element_by_xpath('/html/body/div[4]/div[5]/div[1]/div/div/div/div/div[4]/div[2]/div/div[6]/div[5]/div/span[2]')
+
+@then('In the TIMECARD WEDNESDAY clock in Exception Showing')
+def step_WednesdayLateIn(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+
+    driver.find_element_by_xpath('/html/body/div[4]/div[5]/div[1]/div/div/div/div/div[4]/div[2]/div/div[7]/div[5]/div/span[2]')
+
+@then('In the TIMECARD THURSDAY clock in Exception Showing')
+def step_ThursdayLateIn(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+
+    driver.find_element_by_xpath('/html/body/div[4]/div[5]/div[1]/div/div/div/div/div[4]/div[2]/div/div[8]/div[5]/div/span[2]')
+
+@then('In the TIMECARD FRIDAY clock in Exception Showing')
+def step_FridayLateIn(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+
+    driver.find_element_by_xpath('/html/body/div[4]/div[5]/div[1]/div/div/div/div/div[4]/div[2]/div/div[9]/div[5]/div/span[2]')
+
+@then('In the TIMECARD SATURDAY clock in Exception Showing')
+def step_SaturdayLateIn(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+
+    driver.find_element_by_xpath('/html/body/div[4]/div[5]/div[1]/div/div/div/div/div[4]/div[2]/div/div[10]/div[5]/div/span[2]')
+
+
+
+
+@then('In the TIMECARD SUNDAY clock in No Exception')
+def step_SundayNoClockInException(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+    try:
+        driver.find_element_by_xpath('/html/body/div[4]/div[5]/div[1]/div/div/div/div/div[4]/div[2]/div/div[4]/div[5]/div/span[2]')
+        logging.error('SUNDAY CLOCK IN EXCEPTION SHOWED')
+        raise
+        driver.close
+    except selexcept.NoSuchElementException:
+        pass
+
+
+
+@then('In the TIMECARD MONDAY clock in No Exception')
+def step_MondayNoClockInException(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+    try:
+        driver.find_element_by_xpath('/html/body/div[4]/div[5]/div[1]/div/div/div/div/div[4]/div[2]/div/div[5]/div[5]/div/span[2]')
+        logging.error('MONDAY CLOCK IN EXCEPTION SHOWED')
+        raise
+        driver.close
+    except selexcept.NoSuchElementException:
+        pass
+
+
+@then('In the TIMECARD TUESDAY clock in No Exception')
+def step_TuesdayNoClockInException(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+    try:
+        driver.find_element_by_xpath('/html/body/div[4]/div[5]/div[1]/div/div/div/div/div[4]/div[2]/div/div[6]/div[5]/div/span[2]')
+        logging.error('TUESDAY CLOCK IN EXCEPTION SHOWED')
+        raise
+        driver.close
+    except selexcept.NoSuchElementException:
+        pass
+
+@then('In the TIMECARD WEDNESDAY clock in No Exception')
+def step_WednesdayNoClockInException(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+    try:
+        driver.find_element_by_xpath('/html/body/div[4]/div[5]/div[1]/div/div/div/div/div[4]/div[2]/div/div[7]/div[5]/div/span[2]')
+        logging.error('WEDNESDAY CLOCK IN EXCEPTION SHOWED')
+        raise
+        driver.close
+    except selexcept.NoSuchElementException:
+        pass
+
+@then('In the TIMECARD THURSDAY clock in No Exception')
+def step_ThursdayNoClockInException(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+    try:
+        driver.find_element_by_xpath('/html/body/div[4]/div[5]/div[1]/div/div/div/div/div[4]/div[2]/div/div[8]/div[5]/div/span[2]')
+        logging.error('THURSDAY CLOCK IN EXCEPTION SHOWED')
+        raise
+        driver.close
+    except selexcept.NoSuchElementException:
+        pass
+
+@then('In the TIMECARD FRIDAY clock in No Exception')
+def step_FridayNoClockInException(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+    try:
+        driver.find_element_by_xpath('/html/body/div[4]/div[5]/div[1]/div/div/div/div/div[4]/div[2]/div/div[9]/div[5]/div/span[2]')
+        logging.error('FRIDAY CLOCK IN EXCEPTION SHOWED')
+        raise
+        driver.close
+    except selexcept.NoSuchElementException:
+        pass
+
+@then('In the TIMECARD SATURDAY clock in No Exception')
+def step_SaturdayNoClockInException(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+    try:
+        driver.find_element_by_xpath('/html/body/div[4]/div[5]/div[1]/div/div/div/div/div[4]/div[2]/div/div[10]/div[5]/div/span[2]')
+        logging.error('SATURDAY CLOCK IN EXCEPTION SHOWED')
+        raise
+        driver.close
+    except selexcept.NoSuchElementException:
+        pass
+
+@then('In the TIMECARD SUNDAY clock out Exception Showing')
+def step_SundayLateOut(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+
+    driver.find_element_by_xpath('/html/body/div[4]/div[5]/div[1]/div/div/div/div/div[4]/div[2]/div/div[4]/div[6]/div/span[2]')
+
+@then('In the TIMECARD MONDAY clock out Exception Showing')
+def step_MondayLateOut(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+
+    driver.find_element_by_xpath('/html/body/div[4]/div[5]/div[1]/div/div/div/div/div[4]/div[2]/div/div[5]/div[6]/div/span[2]')
+
+@then('In the TIMECARD TUESDAY clock out Exception Showing')
+def step_TuesdayLateOut(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+
+    driver.find_element_by_xpath('/html/body/div[4]/div[5]/div[1]/div/div/div/div/div[4]/div[2]/div/div[6]/div[6]/div/span[2]')
+
+@then('In the TIMECARD WEDNESDAY clock out Exception Showing')
+def step_WednesdayLateOut(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+
+    driver.find_element_by_xpath('/html/body/div[4]/div[5]/div[1]/div/div/div/div/div[4]/div[2]/div/div[7]/div[6]/div/span[2]')
+
+@then('In the TIMECARD THURSDAY clock out Exception Showing')
+def step_ThursdayLateOut(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+
+    driver.find_element_by_xpath('/html/body/div[4]/div[5]/div[1]/div/div/div/div/div[4]/div[2]/div/div[8]/div[6]/div/span[2]')
+
+@then('In the TIMECARD FRIDAY clock out Exception Showing')
+def step_FridayLateOut(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+
+    driver.find_element_by_xpath('/html/body/div[4]/div[5]/div[1]/div/div/div/div/div[4]/div[2]/div/div[9]/div[6]/div/span[2]')
+
+@then('In the TIMECARD SATURDAY clock out Exception Showing')
+def step_SaturdayLateOut(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+
+    driver.find_element_by_xpath('/html/body/div[4]/div[5]/div[1]/div/div/div/div/div[4]/div[2]/div/div[10]/div[6]/div/span[2]')
+
+
+# -------------------LATE OUT EXCEPTIONS--------------------------
+@then('In the TIMECARD SUNDAY clock out No Exception')
+def step_SundayNoClockOutException(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+    try:
+        driver.find_element_by_xpath('/html/body/div[4]/div[5]/div[1]/div/div/div/div/div[4]/div[2]/div/div[4]/div[6]/div/span[2]')
+        logging.error('SUNDAY CLOCK Out EXCEPTION SHOWED')
+        raise
+        driver.close
+    except selexcept.NoSuchElementException:
+        pass
+
+
+
+@then('In the TIMECARD MONDAY clock out No Exception')
+def step_MondayNoClockOutException(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+    try:
+        driver.find_element_by_xpath('/html/body/div[4]/div[5]/div[1]/div/div/div/div/div[4]/div[2]/div/div[5]/div[6]/div/span[2]')
+        logging.error('MONDAY CLOCK Out EXCEPTION SHOWED')
+        raise
+        driver.close
+    except selexcept.NoSuchElementException:
+        pass
+
+
+@then('In the TIMECARD TUESDAY clock out No Exception')
+def step_TuesdayNoClockOutException(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+    try:
+        driver.find_element_by_xpath('/html/body/div[4]/div[5]/div[1]/div/div/div/div/div[4]/div[2]/div/div[6]/div[6]/div/span[2]')
+        logging.error('TUESDAY CLOCK Out EXCEPTION SHOWED')
+        raise
+        driver.close
+    except selexcept.NoSuchElementException:
+        pass
+
+@then('In the TIMECARD WEDNESDAY clock out No Exception')
+def step_WednesdayNoClockOutException(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+    try:
+        driver.find_element_by_xpath('/html/body/div[4]/div[5]/div[1]/div/div/div/div/div[4]/div[2]/div/div[7]/div[6]/div/span[2]')
+        logging.error('WEDNESDAY CLOCK Out EXCEPTION SHOWED')
+        raise
+        driver.close
+    except selexcept.NoSuchElementException:
+        pass
+
+@then('In the TIMECARD THURSDAY clock out No Exception')
+def step_ThursdayNoClockOutException(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+    try:
+        driver.find_element_by_xpath('/html/body/div[4]/div[5]/div[1]/div/div/div/div/div[4]/div[2]/div/div[8]/div[6]/div/span[2]')
+        logging.error('THURSDAY CLOCK Out EXCEPTION SHOWED')
+        raise
+        driver.close
+    except selexcept.NoSuchElementException:
+        pass
+
+@then('In the TIMECARD FRIDAY clock out No Exception')
+def step_FridayNoClockOutException(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+    try:
+        driver.find_element_by_xpath('/html/body/div[4]/div[5]/div[1]/div/div/div/div/div[4]/div[2]/div/div[9]/div[6]/div/span[2]')
+        logging.error('FRIDAY CLOCK Out EXCEPTION SHOWED')
+        raise
+        driver.close
+    except selexcept.NoSuchElementException:
+        pass
+
+@then('In the TIMECARD SATURDAY clock out No Exception')
+def step_SaturdayNoClockOutException(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+    try:
+        driver.find_element_by_xpath('/html/body/div[4]/div[5]/div[1]/div/div/div/div/div[4]/div[2]/div/div[10]/div[6]/div/span[2]')
+        logging.error('SATURDAY CLOCK Out EXCEPTION SHOWED')
+        raise
+        driver.close
+    except selexcept.NoSuchElementException:
+        pass
+
+
+
+
+# --------------------------------OVERTIME----------------------------------------------
+@then('In the TIMECARD SUNDAY approve inshift overtime')
+def step_SundayApproveOvertime(context):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1914')]"))
+    driver = context.driver
+
+
+    OvertimeClick = driver.find_element_by_xpath(
+        '//*[@id="column-Date-Row-1"]/span')
+    ActionChains(driver).move_to_element(OvertimeClick).context_click(OvertimeClick).perform()
+
+    time.sleep(3)
+    driver.find_element_by_xpath('//*[@id="approveOvertimePopup"]').click()
+    time.sleep(1)
+    driver.find_element_by_xpath('//*[@id="timecardApproveOvertime"]/div[2]/div/footer/div/button[3]').click()
+
+    time.sleep(2)
+    driver.find_element_by_xpath('//*[@id="saveButton"]').click()
+    time.sleep(5)
+
+
+
+@then('In Schedule Planner on Sunday Enter Work Rule Transfer: "{WorkRule}" start time:"{IN}" end time:"{OUT}".')
+def step_WorkRuleTransferSun(context, WorkRule, IN, OUT):
+    context.driver.switch_to.default_content()
+    time.sleep(2)
+    context.driver.switch_to.frame(context.driver.find_element_by_xpath("//iframe[contains(@id,'widgetFrame1947')]"))
+    driver = context.driver
+
+    workRule = driver.find_element_by_xpath('/html/body/div[1]/div[4]/div/div/div[2]/div[1]/div[2]/div[3]/div[1]/div/div/div[2]/div[2]/div/div[4]/table[2]/tbody/tr/td/div/div[7]/div[2]/div/div')
+    ActionChains(driver).move_to_element(workRule).context_click(workRule).perform()
+    time.sleep(2)
+    driver.find_element_by_xpath('/html/body/div[10]/div/div[3]/div/div[1]/a').click()
+    time.sleep(10)
+    WRpress = driver.find_element_by_xpath('/html/body/div[10]/div[2]/div/div[3]/div[3]/div[4]/div/div/div[1]/div/div/div/div[4]/div[2]/div/div[2]/div/div/div[1]/input')
+    ActionChains(driver).move_to_element(WRpress).click(WRpress).perform()
+
+
+    time.sleep(10)
+    actions = ActionChains(driver)
+    actions.send_keys(WorkRule)
+    actions.perform()
+    time.sleep(2)
+    driver.find_element_by_xpath('//*[contains(@title, "BA Additional Shift")]').click()
+    time.sleep(5)
+    driver.find_element_by_xpath('/html/body/div[10]/div[2]/div/div[3]/div[3]/div[4]/div/div/div[1]/div/div/div/div[4]/div[2]/div/div[2]/div[6]').click()
+    time.sleep(2)
+    actions = ActionChains(driver)
+    actions.send_keys(IN)
+    actions.perform()
+    time.sleep(5)
+    driver.find_element_by_xpath(
+        '/html/body/div[10]/div[2]/div/div[3]/div[3]/div[4]/div/div/div[1]/div/div/div/div[4]/div[2]/div/div[2]/div[7]').click()
+    time.sleep(2)
+    actions = ActionChains(driver)
+    actions.send_keys(IN)
+    actions.perform()
+
+    time.sleep(10)
+
+
+
+
+
+
